@@ -1,0 +1,5 @@
+# ignore socket files
+
+live.soc
+control.soc
+
