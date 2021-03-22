@@ -87,8 +87,39 @@ class FocusTaskHandler(TaskHandler):
                 raise e
 
 
+class CustomValueTaskHandler(TaskHandler):
+    CMD_PREFIX = 'c'
+
+    def run(self):
+        self.get_config()
+        args = self.command.split(' ')
+        if len(args) == 2:
+            try:
+                conf = self.config.get_child_by_name(args[1])
+                self.logger.info(f"Config {args[1]} is {conf.get_value()}")
+            except gp.GPhoto2Error as e:
+                if e.code == -2:
+                    self.logger.info(f"Config {args[1]} does not exist")
+
+        if len(args) == 3:
+            try:
+                set_value = args[2]
+                conf = self.config.get_child_by_name(args[1])
+                if conf.get_type() == gp.GP_WIDGET_RANGE:
+                    set_value = float(set_value)
+                    value_range = conf.get_range()
+                    if not value_range[0] <= set_value <= value_range[1] and set_value % value_range[2]:
+                        self.logger.info(f"Config {args[1]} was not in range.")
+                        return
+                conf.set_value(set_value)
+                self.set_config(args[1], conf)
+            except gp.GPhoto2Error as e:
+                if e.code == -2:
+                    self.logger.info(f"Config {args[1]} does not exist")
+
+
 class TaskHandlerManager(object):
-    TASK_HANDLERS = [FocusTaskHandler, IsoTaskHandler, FstopTaskHandler]
+    TASK_HANDLERS = [FocusTaskHandler, IsoTaskHandler, FstopTaskHandler, CustomValueTaskHandler]
 
     def __init__(self, cmd: str):
         """
