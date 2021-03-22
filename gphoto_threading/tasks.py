@@ -7,9 +7,10 @@ USE_SINGLE_SET = True
 class TaskHandler(LoggerMixin):
     CMD_PREFIX = None
 
-    def __init__(self, command: str, camera: gp.Camera):
+    def __init__(self, command: str, camera: gp.Camera, handler):
         self.command = command
         self.camera = camera
+        self.handler = handler
         self.config = None
         self.run()
 
@@ -71,6 +72,14 @@ class FstopTaskHandler(ChoiceBaseTaskHandler):
         self.parse_config_named('f-number')
 
 
+class ResetShutterHandler(TaskHandler):
+    CMD_PREFIX = 'r'
+
+    def run(self):
+        self.camera.exit()
+        self.handler.init_camera()
+
+
 class FocusTaskHandler(TaskHandler):
     CMD_PREFIX = 'f'
 
@@ -119,7 +128,7 @@ class CustomValueTaskHandler(TaskHandler):
 
 
 class TaskHandlerManager(object):
-    TASK_HANDLERS = [FocusTaskHandler, IsoTaskHandler, FstopTaskHandler, CustomValueTaskHandler]
+    TASK_HANDLERS = [FocusTaskHandler, IsoTaskHandler, FstopTaskHandler, CustomValueTaskHandler, ResetShutterHandler]
 
     def __init__(self, cmd: str):
         """
@@ -139,5 +148,5 @@ class TaskHandlerManager(object):
             # return the last match so that if there is a case where there are multiple matches.
             return matches[-1]
 
-    def run_handler(self, camera: gp.Camera):
-        self.handler(self.cmd, camera)
+    def run_handler(self, camera: gp.Camera, handler):
+        self.handler(self.cmd, camera, handler)

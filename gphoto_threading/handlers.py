@@ -107,7 +107,7 @@ class CameraSocketHandler(QueueRequestHandler, BaseCameraHandler, LoggerMixin):
     def handle_tasks(self):
         task = self.server.queue.get_nowait()
         if isinstance(task, TaskHandlerManager):
-            task.run_handler(self.camera)
+            task.run_handler(self.camera, self)
         elif isinstance(task, str):
             if task == 'exit':
                 self.broken = True
@@ -136,7 +136,7 @@ class CameraUDPServer(BaseCameraHandler):
     def handle_tasks(self):
         task = self.queue.get_nowait()
         if isinstance(task, TaskHandlerManager):
-            task.run_handler(self.camera)
+            task.run_handler(self.camera, self)
         elif isinstance(task, str):
             if task == 'exit':
                 self.broken = True
