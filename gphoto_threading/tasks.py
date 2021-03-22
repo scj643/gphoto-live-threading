@@ -84,7 +84,6 @@ class ShutterToggleTaskHandler(TaskHandler):
             self.handler.raise_shutter()
 
 
-
 class FocusTaskHandler(TaskHandler):
     CMD_PREFIX = 'f'
 
