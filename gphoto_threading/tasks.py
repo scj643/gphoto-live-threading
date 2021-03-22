@@ -72,12 +72,17 @@ class FstopTaskHandler(ChoiceBaseTaskHandler):
         self.parse_config_named('f-number')
 
 
-class ResetShutterHandler(TaskHandler):
-    CMD_PREFIX = 'r'
+class ShutterToggleTaskHandler(TaskHandler):
+    CMD_PREFIX = 't'
 
     def run(self):
-        self.camera.exit()
-        self.handler.init_camera()
+        if self.handler.shutter_up:
+            self.camera.exit()
+            self.handler.shutter_up = False
+            self.handler.get_camera()
+        else:
+            self.handler.raise_shutter()
+
 
 
 class FocusTaskHandler(TaskHandler):
@@ -128,7 +133,8 @@ class CustomValueTaskHandler(TaskHandler):
 
 
 class TaskHandlerManager(object):
-    TASK_HANDLERS = [FocusTaskHandler, IsoTaskHandler, FstopTaskHandler, CustomValueTaskHandler, ResetShutterHandler]
+    TASK_HANDLERS = [FocusTaskHandler, IsoTaskHandler, FstopTaskHandler, CustomValueTaskHandler,
+                     ShutterToggleTaskHandler]
 
     def __init__(self, cmd: str):
         """

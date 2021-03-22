@@ -22,11 +22,18 @@ class QueueRequestHandler(BaseRequestHandler):
 class BaseCameraHandler(LoggerMixin):
     camera = None
     broken = None
+    shutter_up = False
+
+    def raise_shutter(self):
+        # Needed to make the shutter go up.
+        self.camera.capture_preview()
+        self.shutter_up = True
 
     def init_camera(self):
         gp.check_result(gp.use_python_logging())
         self.broken = False
         self.get_camera()
+        self.raise_shutter()
 
     def get_camera(self):
         self.logger.info("Getting camera list")
@@ -53,7 +60,7 @@ class BaseCameraHandler(LoggerMixin):
                     self.handle_tasks()
                 except Empty:
                     pass
-                if not self.broken:
+                if not self.broken and self.shutter_up:
                     data = self.camera_live_data()
                     self.handle_data(data)
             except BrokenPipeError:
