@@ -45,10 +45,6 @@ class BaseCameraHandler(LoggerMixin):
         self.camera.init()
         self.logger.debug(f"Initialized camera {non_iphone[0]}")
 
-        # Start live view
-        # This should be replaced with proper calls
-        self.camera.capture_preview()
-
     def camera_loop(self):
         # If we aren't broken stay in the loop
         while not self.broken:
