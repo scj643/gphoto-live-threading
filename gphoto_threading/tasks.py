@@ -1,6 +1,8 @@
 import gphoto2 as gp
 from gphoto_threading.utils import LoggerMixin
 
+USE_SINGLE_SET = True
+
 
 class TaskHandler(LoggerMixin):
     CMD_PREFIX = None
@@ -10,6 +12,12 @@ class TaskHandler(LoggerMixin):
         self.camera = camera
         self.config = None
         self.run()
+
+    def set_config(self, config_name, conf):
+        if USE_SINGLE_SET:
+            self.camera.set_single_config(config_name, conf)
+        else:
+            self.camera.set_config(self.config)
 
     def get_config(self) -> None:
         """
@@ -31,14 +39,20 @@ class ChoiceBaseTaskHandler(TaskHandler):
         current_pos = c_list.index(current)
         if self.command[1] == '+':
             current_pos += 1
-            if current_pos <= len(c_list):
+            if current_pos <= len(c_list) - 1:
                 conf.set_value(c_list[current_pos])
-                self.camera.set_config(self.config)
+                self.set_config(config_name, conf)
+                self.logger.debug(f'Set value of {config_name} to {c_list[current_pos]}')
+            else:
+                self.logger.info(f"Value of {config_name} can not go higher")
         elif self.command[1] == '-':
             current_pos -= 1
             if current_pos >= 0:
                 conf.set_value(c_list[current_pos])
-                self.camera.set_config(self.config)
+                self.set_config(config_name, conf)
+                self.logger.debug(f'Set value of {config_name} to {c_list[current_pos]}')
+            else:
+                self.logger.info(f"Value of {config_name} can not go lower")
 
 
 class IsoTaskHandler(ChoiceBaseTaskHandler):
@@ -65,7 +79,7 @@ class FocusTaskHandler(TaskHandler):
         focus = self.config.get_child_by_name('autofocusdrive')
         focus.set_value(not bool(focus.get_value()))
         try:
-            self.camera.set_config(self.config)
+            self.set_config('autofocusdrive', focus)
         except gp.GPhoto2Error as e:
             if e.code == -1:
                 self.logger.info("Failed to focus")
